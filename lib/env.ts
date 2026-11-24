@@ -1,7 +1,17 @@
+function isValidHttpUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 export function isSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-  return Boolean(url && anonKey);
+  return isValidHttpUrl(url) && Boolean(anonKey);
 }
 
 export function isServerSupabaseConfigured(): boolean {
