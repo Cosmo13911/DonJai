@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+dist/
+outputs/
+.env*
+!.env.example
+.sites-runtime/
+*.tsbuildinfo
+__pycache__/

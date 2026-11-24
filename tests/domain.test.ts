@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import type {Gift} from '../lib/domain.ts';
+import { validateGift, publishSnapshot, matchTurn } from '../lib/domain.ts';
+import { encryptGift, decryptGift } from '../lib/crypto.ts';
+const sample:Gift={subtitle:'คำสั้น ๆ',cover:'/images/couple.jpg',updatedAt:new Date().toISOString(),id:'abc',template:'anniversary',recipient:'มายด์',sender:'ต้น',title:'เรื่องราวของเรา',color:'rose',blocks:[{id:'letter',type:'letter',title:'ถึงเธอ',text:'ขอบคุณที่อยู่ข้างกัน'}]};
+test('publishing keeps a separate snapshot when the creator edits their draft',()=>{const copy=publishSnapshot(sample);sample.title='แก้ฉบับร่าง';assert.equal(copy.title,'เรื่องราวของเรา');});
+test('missing recipient and unsafe uploaded image URLs are rejected',()=>{assert.equal(validateGift(sample).recipient,'มายด์');assert.throws(()=>validateGift({...sample,subtitle:{invalid:'object'}}));assert.throws(()=>validateGift({...sample,recipient:''}));assert.throws(()=>validateGift({...sample,blocks:[{id:'a',type:'photo',image:'javascript:alert(1)'}]}));});
+test('password-protected Thai content decrypts only with the right password',async()=>{const sealed=await encryptGift(sample,'140267');assert.equal(JSON.stringify(sealed).includes('ต้น'),false);assert.deepEqual(await decryptGift(sealed,'140267'),sample);await assert.rejects(()=>decryptGift(sealed,'wrong'));});
+test('a card cannot be matched against itself and a correct pair stays matched',()=>{const s={open:[] as number[],matched:[] as number[]};const first=matchTurn(s,0,['a','b','a','b']);const twice=matchTurn(first,0,['a','b','a','b']);assert.deepEqual(twice,first);const match=matchTurn(first,2,['a','b','a','b']);assert.deepEqual(match.matched,[0,2]);});
